@@ -1,4 +1,5 @@
 import React, { createContext, useReducer, useContext } from "react";
+import { nanoid } from "nanoid";
 
 // create a type for Task
 type Task = {
@@ -12,6 +13,11 @@ type List = {
   text: string;
   tasks: Task[];
 };
+
+// Define type for actions
+type Action =
+  | { type: "ADD_LIST"; payload: string }
+  | { type: "ADD_TASK"; payload: { text: string; listId: string } };
 
 export type AppState = {
   lists: List[];
@@ -45,6 +51,7 @@ const appData: AppState = {
 
 type AppStateContextProps = {
   state: AppState;
+  dispatch: React.Dispatch<Action>;
 };
 
 const AppStateContext = createContext<AppStateContextProps>(
@@ -55,8 +62,10 @@ const AppStateContext = createContext<AppStateContextProps>(
 // the AppStateContext.Provider :
 
 export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
+  const [state, dispatch] = useReducer(appStateReducer, appData);
+
   return (
-    <AppStateContext.Provider value={{ state: appData }}>
+    <AppStateContext.Provider value={{ state, dispatch }}>
       {children}
     </AppStateContext.Provider>
   );
@@ -69,4 +78,31 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
 // define a new function called useAppState
 export const useAppState = () => {
   return useContext(AppStateContext);
+};
+
+// Define appStateReducer
+const appStateReducer = (state: AppState, action: Action): AppState => {
+  switch (action.type) {
+    case "ADD_LIST": {
+      // Reducer logic here...
+      return {
+        ...state,
+        lists: [
+          ...state.lists,
+          { id: nanoid(), text: action.payload, tasks: [] },
+        ],
+      };
+    }
+
+    case "ADD_TASK": {
+      // Reducer logic here...
+      return {
+        ...state,
+      };
+    }
+
+    default: {
+      return state;
+    }
+  }
 };
