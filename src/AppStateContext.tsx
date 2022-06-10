@@ -1,5 +1,11 @@
 import React, { createContext, useReducer, useContext } from "react";
 import { nanoid } from "nanoid";
+import {
+  overrideItemAtIndex,
+  findItemIndexById,
+  moveItem,
+} from "./utils/arrayUtils";
+import { DragItem } from "./DragItem";
 
 // create a type for Task
 type Task = {
@@ -17,13 +23,24 @@ type List = {
 // Define type for actions
 type Action =
   | { type: "ADD_LIST"; payload: string }
-  | { type: "ADD_TASK"; payload: { text: string; listId: string } };
+  | { type: "ADD_TASK"; payload: { text: string; listId: string } }
+  | {
+      type: "MOVE_LIST";
+      payload: {
+        dragIndex: number;
+        hoverIndex: number;
+      };
+    }
+  | { type: "SET_DRAGGED_ITEM"; payload: DragItem | undefined };
 
 export type AppState = {
   lists: List[];
+  draggedItem: DragItem | undefined;
 };
 
 const appData: AppState = {
+  draggedItem: undefined,
+
   lists: [
     {
       id: "0",
@@ -95,10 +112,42 @@ const appStateReducer = (state: AppState, action: Action): AppState => {
     }
 
     case "ADD_TASK": {
+      const targetListIndex = findItemIndexById(
+        state.lists,
+        action.payload.listId
+      );
+
+      const targetList = state.lists[targetListIndex];
+
+      const updatedTargetList = {
+        ...targetList,
+        tasks: [
+          ...targetList.tasks,
+          { id: nanoid(), text: action.payload.text },
+        ],
+      };
+
       // Reducer logic here...
       return {
         ...state,
+        lists: overrideItemAtIndex(
+          state.lists,
+          updatedTargetList,
+          targetListIndex
+        ),
       };
+    }
+
+    case "MOVE_LIST": {
+      const { dragIndex, hoverIndex } = action.payload;
+      return {
+        ...state,
+        lists: moveItem(state.lists, dragIndex, hoverIndex),
+      };
+    }
+
+    case "SET_DRAGGED_ITEM": {
+      return { ...state, draggedItem: action.payload };
     }
 
     default: {
