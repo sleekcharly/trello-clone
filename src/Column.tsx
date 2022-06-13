@@ -12,6 +12,7 @@ type ColumnProps = {
   text: string;
   index: number;
   id: string;
+  isPreview?: boolean;
 };
 
 // Use the 'React.PropsWithChildren' type to enhance
@@ -23,6 +24,7 @@ export const Column = ({
   // children?: React.ReactNode
   index,
   id,
+  isPreview,
 }: ColumnProps) => {
   const { state, dispatch } = useAppState();
 
@@ -48,12 +50,19 @@ export const Column = ({
 
   return (
     <ColumnContainer
+      isPreview={isPreview}
       ref={ref}
-      isHidden={isHidden(state.draggedItem, "COLUMN", id)}
+      isHidden={isHidden(isPreview, state.draggedItem, "COLUMN", id)}
     >
       <ColumnTitle>{text}</ColumnTitle>
       {state.lists[index].tasks.map((task, i) => (
-        <Card text={task.text} key={task.id} index={i} />
+        <Card
+          id={task.id}
+          columnId={id}
+          text={task.text}
+          key={task.id}
+          index={i}
+        />
       ))}
 
       <AddNewItem
