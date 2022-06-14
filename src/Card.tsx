@@ -40,6 +40,7 @@ export const Card = ({ text, id, index, columnId, isPreview }: CardProps) => {
       item.columnId = targetColumn;
     },
   });
+
   drag(drop(ref));
 
   return (
