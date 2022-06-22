@@ -9,6 +9,7 @@ import {
 } from "./utils/arrayUtils";
 import { DragItem } from "./DragItem";
 import { save } from "./api";
+import { withInitialState } from "./withInitialState";
 
 // create a type for Task
 type Task = {
@@ -44,6 +45,12 @@ type Action =
         targetColumn: string;
       };
     };
+
+// Define the AppStateProviderProps:
+type AppStateProviderProps = {
+  children: React.ReactNode;
+  initialState: AppState;
+};
 
 export type AppState = {
   lists: List[];
@@ -90,19 +97,21 @@ const AppStateContext = createContext<AppStateContextProps>(
 // Now let’s define the AppStateProvider . It will pass the hardcoded appData through
 // the AppStateContext.Provider :
 
-export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
-  const [state, dispatch] = useReducer(appStateReducer, appData);
+export const AppStateProvider = withInitialState<AppStateProviderProps>(
+  ({ children, initialState }) => {
+    const [state, dispatch] = useReducer(appStateReducer, initialState);
 
-  useEffect(() => {
-    save(state);
-  }, [state]);
+    useEffect(() => {
+      save(state);
+    }, [state]);
 
-  return (
-    <AppStateContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppStateContext.Provider>
-  );
-};
+    return (
+      <AppStateContext.Provider value={{ state, dispatch }}>
+        {children}
+      </AppStateContext.Provider>
+    );
+  }
+);
 
 // Our component will only accept children as a prop. We’re using the React.propsWithChildren
 // type. It requires one generic argument, but we don’t want to have any other props,
